@@ -59,7 +59,15 @@ const HtmlMapper = ({ children: tagMap, html, acceptUnknown, decodeEntities = tr
 
             if (node instanceof Element) {
                 const name = node.name as keyof JSX.IntrinsicElements;
-                const children = node.children?.map((childNode, i) => transform(childNode, i)) || null;
+                
+                // Handle void elements (self-closing tags) that shouldn't have children
+                const voidElements = new Set(['br', 'hr', 'img', 'input', 'meta', 'link', 'area', 'base', 'col', 'embed', 'source', 'track', 'wbr']);
+                
+                let children: ReactNode = null;
+                if (!voidElements.has(name)) {
+                    children = node.children?.map((childNode, i) => transform(childNode, i)) || null;
+                }
+                
                 return render(name, node.attribs, index, children);
             }
 
