@@ -16,23 +16,10 @@ exports[`HtmlMapper > handles HTML entities with decodeEntities disabled 1`] = `
 </div>
 `;
 
-exports[`HtmlMapper > handles custom component that returns element with falsy name 1`] = `
-<div>
-  &lt;&gt;content&lt;/&gt;
-</div>
-`;
-
 exports[`HtmlMapper > handles elements with no children 1`] = `
 <div>
   <div />
   <p />
-</div>
-`;
-
-exports[`HtmlMapper > handles elements with undefined children property 1`] = `
-<div>
-  <area />
-  <input />
 </div>
 `;
 
@@ -77,6 +64,31 @@ exports[`HtmlMapper > handles void elements correctly 1`] = `
     <input
       type="text"
     />
+  </div>
+</div>
+`;
+
+exports[`HtmlMapper > passes index parameter to custom renderers 1`] = `
+<div>
+  <div>
+    <p
+      class="first-paragraph"
+      data-index="0"
+    >
+      First
+    </p>
+    <p
+      class="paragraph"
+      data-index="1"
+    >
+      Second
+    </p>
+    <p
+      class="paragraph"
+      data-index="2"
+    >
+      Third
+    </p>
   </div>
 </div>
 `;
@@ -224,5 +236,18 @@ exports[`HtmlMapper > renders whitelisted components 1`] = `
   <p>
     Dat zijn ook makelaars in koffie, doch hun adres behoeft ge niet te weten. Ik pas er dus wel op, dat ik geen romans schrijf, of andere valse opgaven doe. Ik heb dan ook altijd opgemerkt dat mensen die zich met zoiets inlaten, gewoonlijk slecht wegkomen. Ik ben drieënveertig jaar oud, bezoek sedert twintig jaren de beurs, en kan dus voor de dag treden, als men iemand roept die ondervinding heeft. Ik heb al wat huizen zien vallen!
   </p>
+</div>
+`;
+
+exports[`HtmlMapper > supports tag mapping with null for pass-through rendering 1`] = `
+<div>
+  <div>
+    <p>
+      Paragraph
+    </p>
+    <strong>
+      Bold
+    </strong>
+  </div>
 </div>
 `;

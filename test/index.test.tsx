@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react";
 import type { ReactNode } from "react";
-import HtmlMapper from "../src";
+import HtmlMapper, { type TagMap } from "../src";
 
 const TEST_HTML =
 	'<p id="test-html">Af deel pomp soms tijd veel ad. En <strong>voorloopig</strong> uitgegeven en nu ad verkochten beschikken. Al zout al in over bord te. Voorschijn moeilijker wedijveren na op. Zelf kilo zoon wel dag ruwe gas. Grayah de op vloeit na is goeden. Cenis langs maken nemen al ad klein de te.<br />Bepaalde gebruikt de verrezen <em>gestoken schatten</em> en <strong>verbouwd</strong>. <br />Krachten nu eveneens na in op nadering britsche maleiers verbruik. </p>\\n<p>Dat geheel vleesch zonder been is, gebruikt men om daar Osse-worst van te maaken; en het vleesch van de schouwders met de twee platte bil stukken, met het vet van de broek gebruikt men tot rolpens in plaats van ander vet.</p>\\n<ul><li>Dit is een feest</li><li>Morgen komt de melkboer</li></ul><h3>Al zout al in over bord te.</h3>\\n<p>Witheid meestal noemden met zee aandeel gezocht valorem heb. Holen moest steek zoo mei zit. Slechts zee dag bronnen gemengd weg behoeft doelang der. Al blijft midden op om na daarin. Dien werk van eind vaak zal per doel iets gif. Tembun wat groote een enkele.</p>\\n<h3>Lauriergracht No 37</h3>\\n<p>Ik ben makelaar in koffi, en woon op de Lauriergracht No 37. Het is mijn gewoonte niet, romans te schrijven, of zulke dingen, en het heeft dan ook lang geduurd, voor ik er toe overging een paar riem papier extra te bestellen, en het werk aan te vangen, dat gij, lieve lezer, zoâven in de hand hebt genomen, en dat ge lezen moet als ge makelaar in koffie zijt, of als ge wat anders zijt.</p>\\n<h4>Busselinck &amp; Waterman</h4>\\n<p>Dat zijn ook makelaars in koffie, doch hun adres behoeft ge niet te weten. Ik pas er dus wel op, dat ik geen romans schrijf, of andere valse opgaven doe. Ik heb dan ook altijd opgemerkt dat mensen die zich met zoiets inlaten, gewoonlijk slecht wegkomen. Ik ben drieënveertig jaar oud, bezoek sedert twintig jaren de beurs, en kan dus voor de dag treden, als men iemand roept die ondervinding heeft. Ik heb al wat huizen zien vallen!</p>';
@@ -154,5 +154,103 @@ describe("HtmlMapper", () => {
 			</HtmlMapper>,
 		);
 		expect(container).toMatchSnapshot();
+	});
+
+	it("passes index parameter to custom renderers", () => {
+		const htmlWithMultipleParagraphs =
+			"<div><p>First</p><p>Second</p><p>Third</p></div>";
+		const { container } = render(
+			<HtmlMapper html={htmlWithMultipleParagraphs}>
+				{{
+					div: null,
+					p: ({ children, index, ...props }) => (
+						<p
+							{...props}
+							className={index === 0 ? "first-paragraph" : "paragraph"}
+							data-index={index}
+						>
+							{children}
+						</p>
+					),
+				}}
+			</HtmlMapper>,
+		);
+		expect(container).toMatchSnapshot();
+
+		// Verify that the first paragraph has the 'first-paragraph' class
+		const firstParagraph = container.querySelector('[data-index="0"]');
+		expect(firstParagraph).toHaveClass("first-paragraph");
+
+		// Verify that other paragraphs have the regular 'paragraph' class
+		const secondParagraph = container.querySelector('[data-index="1"]');
+		expect(secondParagraph).toHaveClass("paragraph");
+	});
+
+	it("supports tag mapping with null for pass-through rendering", () => {
+		const htmlWithMixedTags =
+			"<div><p>Paragraph</p><strong>Bold</strong><em>Italic</em><span>Span</span></div>";
+		const { container } = render(
+			<HtmlMapper html={htmlWithMixedTags}>
+				{{
+					div: null,
+					p: null,
+					strong: null,
+					// em and span are not in the map, so they should be ignored
+				}}
+			</HtmlMapper>,
+		);
+		expect(container).toMatchSnapshot();
+
+		// Verify that mapped tags are rendered
+		expect(container.querySelector("div")).toBeInTheDocument();
+		expect(container.querySelector("p")).toBeInTheDocument();
+		expect(container.querySelector("strong")).toBeInTheDocument();
+
+		// Verify that unmapped tags are not rendered
+		expect(container.querySelector("em")).not.toBeInTheDocument();
+		expect(container.querySelector("span")).not.toBeInTheDocument();
+	});
+
+	it("supports tag mapping reuse and overriding pattern", () => {
+		const html1 = "<p>First paragraph</p><h1>Heading</h1>";
+		const html2 = "<p>Second paragraph</p><h1>Another heading</h1>";
+
+		const baseTagMap: TagMap = {
+			p: ({ children, ...props }) => (
+				<p {...props} className="base-paragraph">
+					{children}
+				</p>
+			),
+			h1: ({ children, ...props }) => (
+				<h1 {...props} className="base-heading">
+					{children}
+				</h1>
+			),
+		};
+
+		const { container: container1 } = render(
+			<HtmlMapper html={html1}>
+				{{
+					...baseTagMap,
+					p: ({ children, ...props }) => (
+						<p {...props} className="large-paragraph">
+							{children}
+						</p>
+					),
+				}}
+			</HtmlMapper>,
+		);
+
+		const { container: container2 } = render(
+			<HtmlMapper html={html2}>{baseTagMap}</HtmlMapper>,
+		);
+
+		// First container should have the overridden paragraph style
+		expect(container1.querySelector("p")).toHaveClass("large-paragraph");
+		expect(container1.querySelector("h1")).toHaveClass("base-heading");
+
+		// Second container should have the base paragraph style
+		expect(container2.querySelector("p")).toHaveClass("base-paragraph");
+		expect(container2.querySelector("h1")).toHaveClass("base-heading");
 	});
 });

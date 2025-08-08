@@ -17,7 +17,11 @@ type IntrinsicElements = React.JSX.IntrinsicElements;
 type IntrinsicName = keyof IntrinsicElements & string;
 
 export type TagMap = {
-	[tag in keyof Partial<IntrinsicElements>]: FC<IntrinsicElements[tag]> | null;
+	[tag in keyof Partial<IntrinsicElements>]: FC<
+		IntrinsicElements[tag] & {
+			index: number;
+		}
+	> | null;
 };
 
 const VOID_ELEMENTS = new Set([
