@@ -1,92 +1,130 @@
-import React, { createElement, FC, Fragment, ReactNode, useCallback } from 'react';
-import { parseDocument } from 'htmlparser2';
-import { Element, Text, Node } from 'domhandler';
+import type { Node } from "domhandler";
+import { Element, Text } from "domhandler";
+import { parseDocument } from "htmlparser2";
+import type { FC, ReactNode } from "react";
+import { createElement, Fragment, useCallback, useMemo } from "react";
 
 export interface Props {
-    children: TagMap;
-    html: string;
-    decodeEntities?: boolean;
+	children: TagMap;
+	html: string;
+	decodeEntities?: boolean;
 
-    // don't ignore tags that are not in our map.
-    acceptUnknown?: boolean;
+	// don't ignore tags that are not in our map.
+	acceptUnknown?: boolean;
 }
 
+type IntrinsicElements = React.JSX.IntrinsicElements;
+type IntrinsicName = keyof IntrinsicElements & string;
+
 export type TagMap = {
-    [tag in keyof Partial<JSX.IntrinsicElements>]: FC<JSX.IntrinsicElements[tag]> | null;
+	[tag in keyof Partial<IntrinsicElements>]: FC<IntrinsicElements[tag]> | null;
 };
 
-const HtmlMapper = ({ children: tagMap, html, acceptUnknown, decodeEntities = true }: Props) => {
-    const render = useCallback(
-        <N extends keyof JSX.IntrinsicElements, A = JSX.IntrinsicElements[N]>(
-            name: N,
-            props: A,
-            index: number,
-            children: ReactNode
-        ) => {
-            if (!name) {
-                return <Fragment key={index}>{children}</Fragment>;
-            }
+const VOID_ELEMENTS = new Set([
+	"br",
+	"hr",
+	"img",
+	"input",
+	"meta",
+	"link",
+	"area",
+	"base",
+	"col",
+	"embed",
+	"source",
+	"track",
+	"wbr",
+]);
 
-            // TODO: can't find out why the type assert is needed, it _should_ work as-is.
-            const Renderer = tagMap[name] as FC<A & { index: number }> | null | undefined;
+export function HtmlMapper({
+	children: tagMap,
+	html,
+	acceptUnknown,
+	decodeEntities = true,
+}: Props) {
+	const render = useCallback(
+		<N extends IntrinsicName, A = IntrinsicElements[N]>(
+			name: N,
+			props: A,
+			index: number,
+			children: ReactNode,
+		) => {
+			if (!name) {
+				return <Fragment key={index}>{children}</Fragment>;
+			}
 
-            const defaultRenderer = () => createElement(name, { ...props, children, key: index });
+			const Renderer = tagMap[name] as
+				| FC<A & { index: number }>
+				| null
+				| undefined;
 
-            // renderer was specified, but with null, meaning we can safely render this.
-            if (Renderer === null) {
-                return defaultRenderer();
-            }
+			const defaultRenderer = () =>
+				createElement(name, { ...props, children, key: index });
 
-            // no renderer was specified
-            if (typeof Renderer === 'undefined') {
-                return acceptUnknown ? defaultRenderer() : null;
-            }
+			// renderer was specified, but with null, meaning we can safely render this.
+			if (Renderer === null) {
+				return defaultRenderer();
+			}
 
-            return (
-                <Renderer {...props} index={index} key={index}>
-                    {children}
-                </Renderer>
-            );
-        },
-        [acceptUnknown, tagMap]
-    );
+			// no renderer was specified
+			if (typeof Renderer === "undefined") {
+				return acceptUnknown ? defaultRenderer() : null;
+			}
 
-    const transform = useCallback(
-        (node: Node, index: number): ReactNode => {
-            if (node instanceof Text) {
-                return node.data;
-            }
+			return (
+				<Renderer {...(props as A)} index={index} key={index}>
+					{children}
+				</Renderer>
+			);
+		},
+		[acceptUnknown, tagMap],
+	);
 
-            if (node instanceof Element) {
-                const name = node.name as keyof JSX.IntrinsicElements;
-                
-                // Handle void elements (self-closing tags) that shouldn't have children
-                const voidElements = new Set(['br', 'hr', 'img', 'input', 'meta', 'link', 'area', 'base', 'col', 'embed', 'source', 'track', 'wbr']);
-                
-                let children: ReactNode = null;
-                if (!voidElements.has(name)) {
-                    children = node.children?.map((childNode, i) => transform(childNode, i)) || null;
-                }
-                
-                return render(name, node.attribs, index, children);
-            }
+	const transform = useCallback(
+		(node: Node, index: number): ReactNode => {
+			if (node instanceof Text) {
+				return node.data;
+			}
 
-            return null;
-        },
-        [render]
-    );
+			if (node instanceof Element) {
+				const name = node.name as IntrinsicName;
 
-    const parsedDocument = parseDocument(html, { 
-        decodeEntities,
-        withStartIndices: false,
-        withEndIndices: false 
-    });
+				let children: ReactNode = null;
+				if (!VOID_ELEMENTS.has(name)) {
+					children =
+						node.children?.map((childNode, i) => transform(childNode, i)) ||
+						null;
+				}
 
-    return (
-        <>
-            {parsedDocument.children.map((node, index) => transform(node, index))}
-        </>
-    );
-};
+				return render(
+					name,
+					node.attribs as unknown as IntrinsicElements[IntrinsicName],
+					index,
+					children,
+				);
+			}
+
+			return null;
+		},
+		[render],
+	);
+
+	const parsedDocument = useMemo(
+		() =>
+			parseDocument(html, {
+				decodeEntities,
+				withStartIndices: false,
+				withEndIndices: false,
+			}),
+		[html, decodeEntities],
+	);
+
+	const content = useMemo(
+		() => parsedDocument.children.map((node, index) => transform(node, index)),
+		[parsedDocument, transform],
+	);
+
+	return <>{content}</>;
+}
 
 export default HtmlMapper;

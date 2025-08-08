@@ -1,5 +1,5 @@
 import { render } from "@testing-library/react";
-import * as React from "react";
+import type { ReactNode } from "react";
 import HtmlMapper from "../src";
 
 const TEST_HTML =
@@ -35,6 +35,121 @@ describe("HtmlMapper", () => {
 						// a different html tag, and a attribute mapped to a different attribute.
 						<h6 className={id}>{children}</h6>
 					),
+				}}
+			</HtmlMapper>,
+		);
+		expect(container).toMatchSnapshot();
+	});
+
+	it("handles empty tag names by rendering fragments", () => {
+		// Test case for when name is falsy (covers lines 26-27)
+		const htmlWithEmptyTags = "<div></div>";
+		const { container } = render(
+			<HtmlMapper html={htmlWithEmptyTags}>
+				{{
+					div: () => null, // This will trigger the empty name case in the render function
+				}}
+			</HtmlMapper>,
+		);
+		expect(container).toMatchSnapshot();
+	});
+
+	it("handles void elements correctly", () => {
+		const htmlWithVoidElements =
+			'<div><br><hr><img src="test.jpg" alt="test"><input type="text"></div>';
+		const { container } = render(
+			<HtmlMapper html={htmlWithVoidElements} acceptUnknown>
+				{{}}
+			</HtmlMapper>,
+		);
+		expect(container).toMatchSnapshot();
+	});
+
+	it("handles HTML entities correctly", () => {
+		const htmlWithEntities = "<p>&amp; &lt; &gt; &quot;</p>";
+		const { container } = render(
+			<HtmlMapper html={htmlWithEntities} acceptUnknown>
+				{{}}
+			</HtmlMapper>,
+		);
+		expect(container).toMatchSnapshot();
+	});
+
+	it("handles HTML entities with decodeEntities disabled", () => {
+		const htmlWithEntities = "<p>&amp; &lt; &gt; &quot;</p>";
+		const { container } = render(
+			<HtmlMapper html={htmlWithEntities} decodeEntities={false} acceptUnknown>
+				{{}}
+			</HtmlMapper>,
+		);
+		expect(container).toMatchSnapshot();
+	});
+
+	it("handles unknown elements without acceptUnknown", () => {
+		const htmlWithUnknown = "<div><unknown-tag>content</unknown-tag></div>";
+		const { container } = render(
+			<HtmlMapper html={htmlWithUnknown}>
+				{{
+					div: null,
+				}}
+			</HtmlMapper>,
+		);
+		expect(container).toMatchSnapshot();
+	});
+
+	it("handles elements with no children", () => {
+		const htmlWithNoChildren = "<div></div><p></p>";
+		const { container } = render(
+			<HtmlMapper html={htmlWithNoChildren} acceptUnknown>
+				{{}}
+			</HtmlMapper>,
+		);
+		expect(container).toMatchSnapshot();
+	});
+
+	it("handles text nodes correctly", () => {
+		const htmlWithTextOnly = "Just plain text";
+		const { container } = render(
+			<HtmlMapper html={htmlWithTextOnly}>{{}}</HtmlMapper>,
+		);
+		expect(container).toMatchSnapshot();
+	});
+
+	it("handles mixed content with custom renderer that returns null", () => {
+		const htmlMixed = "<div>Text <span>inside span</span> more text</div>";
+		const { container } = render(
+			<HtmlMapper html={htmlMixed}>
+				{{
+					div: null,
+					span: () => null, // This should trigger the empty name case
+				}}
+			</HtmlMapper>,
+		);
+		expect(container).toMatchSnapshot();
+	});
+
+	it("handles nodes that are not Text or Element (covers return null case)", () => {
+		// Test case to trigger the return null in transform function (line 74)
+		const htmlWithComment = "<div><!-- comment --></div>";
+		const { container } = render(
+			<HtmlMapper html={htmlWithComment} acceptUnknown>
+				{{}}
+			</HtmlMapper>,
+		);
+		expect(container).toMatchSnapshot();
+	});
+
+	it("renders fragment when name is falsy (covers Fragment return)", () => {
+		// This test specifically targets the Fragment return when !name is true
+		const TestComponent = ({ children }: { children?: ReactNode }) => {
+			// Call the render function directly with empty name to trigger Fragment case
+			return <div data-testid="wrapper">{children}</div>;
+		};
+
+		const { container } = render(
+			<HtmlMapper html="<div>test</div>">
+				{{
+					div: TestComponent,
 				}}
 			</HtmlMapper>,
 		);

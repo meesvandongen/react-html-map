@@ -1,5 +1,86 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`HtmlMapper > handles HTML entities correctly 1`] = `
+<div>
+  <p>
+    & &lt; &gt; "
+  </p>
+</div>
+`;
+
+exports[`HtmlMapper > handles HTML entities with decodeEntities disabled 1`] = `
+<div>
+  <p>
+    &amp; &lt; &gt; &quot;
+  </p>
+</div>
+`;
+
+exports[`HtmlMapper > handles custom component that returns element with falsy name 1`] = `
+<div>
+  &lt;&gt;content&lt;/&gt;
+</div>
+`;
+
+exports[`HtmlMapper > handles elements with no children 1`] = `
+<div>
+  <div />
+  <p />
+</div>
+`;
+
+exports[`HtmlMapper > handles elements with undefined children property 1`] = `
+<div>
+  <area />
+  <input />
+</div>
+`;
+
+exports[`HtmlMapper > handles empty tag names by rendering fragments 1`] = `<div />`;
+
+exports[`HtmlMapper > handles mixed content with custom renderer that returns null 1`] = `
+<div>
+  <div>
+    Text 
+     more text
+  </div>
+</div>
+`;
+
+exports[`HtmlMapper > handles nodes that are not Text or Element (covers return null case) 1`] = `
+<div>
+  <div />
+</div>
+`;
+
+exports[`HtmlMapper > handles text nodes correctly 1`] = `
+<div>
+  Just plain text
+</div>
+`;
+
+exports[`HtmlMapper > handles unknown elements without acceptUnknown 1`] = `
+<div>
+  <div />
+</div>
+`;
+
+exports[`HtmlMapper > handles void elements correctly 1`] = `
+<div>
+  <div>
+    <br />
+    <hr />
+    <img
+      alt="test"
+      src="test.jpg"
+    />
+    <input
+      type="text"
+    />
+  </div>
+</div>
+`;
+
 exports[`HtmlMapper > renders all non-whitelisted components with acceptUnknown enabled 1`] = `
 <div>
   <p
@@ -93,6 +174,16 @@ exports[`HtmlMapper > renders custom components 1`] = `
   <h6>
     Dat zijn ook makelaars in koffie, doch hun adres behoeft ge niet te weten. Ik pas er dus wel op, dat ik geen romans schrijf, of andere valse opgaven doe. Ik heb dan ook altijd opgemerkt dat mensen die zich met zoiets inlaten, gewoonlijk slecht wegkomen. Ik ben drieënveertig jaar oud, bezoek sedert twintig jaren de beurs, en kan dus voor de dag treden, als men iemand roept die ondervinding heeft. Ik heb al wat huizen zien vallen!
   </h6>
+</div>
+`;
+
+exports[`HtmlMapper > renders fragment when name is falsy (covers Fragment return) 1`] = `
+<div>
+  <div
+    data-testid="wrapper"
+  >
+    test
+  </div>
 </div>
 `;
 
