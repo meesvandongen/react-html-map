@@ -29,6 +29,7 @@
 	"module": "dist/index.js",
 	"typings": "dist/index.d.ts",
 	"type": "module",
+	"sideEffects": false,
 	"exports": {
 		".": {
 			"import": {
@@ -68,6 +69,7 @@
 		"@types/node": "^24.2.0",
 		"@types/react": "^19.1.9",
 		"@types/react-dom": "^19.1.7",
+		"@vitejs/plugin-react": "^5.0.0",
 		"@vitest/coverage-v8": "^3.2.4",
 		"@vitest/ui": "^3.2.4",
 		"jsdom": "^26.1.0",
