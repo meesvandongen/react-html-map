@@ -3,7 +3,11 @@
   "version": "0.1.1",
   "description": "Declarative, composable and secure HTML rendering for React",
   "license": "MIT",
-  "author": "Jari Zwarts",
+  "author": {
+    "name": "Jari Zwarts",
+    "email": "jari@oberon.nl",
+    "url": "https://github.com/oberonamsterdam"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/meesvandongen/react-html-map.git"
@@ -67,7 +71,6 @@
     "publint": "^0.3.12",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "size-limit": "^8.0.0",
     "ts-jest": "^29.0.0",
     "tslib": "^2.0.3",
     "tsup": "^8.0.0",
