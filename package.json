@@ -1,14 +1,43 @@
 {
+  "name": "react-html-map",
   "version": "0.1.1",
+  "description": "Declarative, composable and secure HTML rendering for React",
   "license": "MIT",
+  "author": "Jari Zwarts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/meesvandongen/react-html-map.git"
+  },
+  "homepage": "https://github.com/meesvandongen/react-html-map#readme",
+  "bugs": {
+    "url": "https://github.com/meesvandongen/react-html-map/issues"
+  },
+  "keywords": [
+    "react",
+    "html",
+    "parser",
+    "mapping",
+    "secure",
+    "xss",
+    "typescript"
+  ],
   "main": "dist/index.js",
+  "module": "dist/react-html-map.esm.js",
   "typings": "dist/index.d.ts",
+  "type": "commonjs",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/react-html-map.esm.js",
+      "require": "./dist/index.js"
+    }
+  },
   "files": [
     "dist",
     "src"
   ],
   "engines": {
-    "node": ">=10"
+    "node": ">=14"
   },
   "scripts": {
     "start": "tsdx watch",
@@ -18,14 +47,12 @@
     "prepare": "tsdx build",
     "size": "size-limit",
     "analyze": "size-limit --why",
-    "typecheck": "tsc --project . --noEmit"
+    "typecheck": "tsc --project . --noEmit",
+    "publint": "publint"
   },
   "peerDependencies": {
     "react": ">=16"
   },
-  "name": "react-html-map",
-  "author": "Jari Zwarts",
-  "module": "dist/react-html-map.esm.js",
   "size-limit": [
     {
       "path": "dist/react-html-map.cjs.production.min.js",
@@ -38,18 +65,16 @@
   ],
   "devDependencies": {
     "@size-limit/preset-small-lib": "^4.7.0",
-    "@types/domhandler": "^2.4.1",
-    "@types/htmlparser2": "^3.10.2",
-    "@types/react": "^16.9.56",
-    "@types/react-dom": "^16.9.9",
-    "@types/react-html-parser": "^2.0.1",
-    "@types/react-test-renderer": "^17.0.1",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@types/react-test-renderer": "^18.0.0",
     "husky": "^4.3.0",
     "lint-staged": "^10.5.3",
     "oberon-prettier-config": "^1.0.0",
     "prettier": "^2.2.1",
-    "react": "^17.0.1",
-    "react-test-renderer": "^17.0.2",
+    "publint": "^0.3.12",
+    "react": "^18.0.0",
+    "react-test-renderer": "^18.0.0",
     "size-limit": "^4.7.0",
     "tsdx": "^0.14.1",
     "tslib": "^2.0.3",
@@ -76,8 +101,7 @@
     "endOfLine": "lf"
   },
   "dependencies": {
-    "domhandler": "^2.4.2",
-    "htmlparser2": "^3.10.1",
-    "react-html-parser": "^2.0.2"
+    "domhandler": "^5.0.3",
+    "htmlparser2": "^10.0.0"
   }
 }

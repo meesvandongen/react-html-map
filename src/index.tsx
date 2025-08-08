@@ -1,10 +1,11 @@
 import React, { createElement, FC, Fragment, ReactNode, useCallback } from 'react';
-import htmlParser, { Options } from 'react-html-parser';
-import { DomElement } from 'htmlparser2';
+import { parseDocument } from 'htmlparser2';
+import { Element, Text, Node } from 'domhandler';
 
-export interface Props extends Pick<Options, 'decodeEntities'> {
+export interface Props {
     children: TagMap;
     html: string;
+    decodeEntities?: boolean;
 
     // don't ignore tags that are not in our map.
     acceptUnknown?: boolean;
@@ -14,7 +15,7 @@ export type TagMap = {
     [tag in keyof Partial<JSX.IntrinsicElements>]: FC<JSX.IntrinsicElements[tag]> | null;
 };
 
-const HtmlMapper = ({ children: tagMap, html, acceptUnknown, ...rest }: Props) => {
+const HtmlMapper = ({ children: tagMap, html, acceptUnknown, decodeEntities = true }: Props) => {
     const render = useCallback(
         <N extends keyof JSX.IntrinsicElements, A = JSX.IntrinsicElements[N]>(
             name: N,
@@ -51,32 +52,31 @@ const HtmlMapper = ({ children: tagMap, html, acceptUnknown, ...rest }: Props) =
     );
 
     const transform = useCallback(
-        (node: DomElement, index: number) => {
-            const name = node.name as keyof JSX.IntrinsicElements;
-            let children: ReactNode = null;
-
-            switch (node.type) {
-                case 'text':
-                    children = node.data;
-                    break;
-                case 'tag':
-                    children = node.children?.map((childNode, i) => transform(childNode, i));
-                    break;
-                default:
-                    break;
+        (node: Node, index: number): ReactNode => {
+            if (node instanceof Text) {
+                return node.data;
             }
 
-            return render(name, node.attribs, index, children);
+            if (node instanceof Element) {
+                const name = node.name as keyof JSX.IntrinsicElements;
+                const children = node.children?.map((childNode, i) => transform(childNode, i)) || null;
+                return render(name, node.attribs, index, children);
+            }
+
+            return null;
         },
         [render]
     );
 
+    const parsedDocument = parseDocument(html, { 
+        decodeEntities,
+        withStartIndices: false,
+        withEndIndices: false 
+    });
+
     return (
         <>
-            {htmlParser(html, {
-                transform,
-                ...rest,
-            })}
+            {parsedDocument.children.map((node, index) => transform(node, index))}
         </>
     );
 };
